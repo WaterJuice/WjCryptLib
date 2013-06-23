@@ -1,0 +1,18 @@
+# top level build directories #
+/Bin*/
+/Build*/
+/Out*/
+Intermediates/
+Products/
+
+# visual studio files #
+*.user
+*.ncb
+*.suo
+*.pdb
+*.aps
+*.ipch
+
+# Xcode files #
+xcuserdata/
+.DS_Store
