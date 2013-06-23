@@ -19,7 +19,7 @@ Version 1.0.0 - June 2013
 -------------------------
 
 To use the library functions, only the following files are required,
-depending one what cryptographic functions are wanted.
+depending on what cryptographic functions are wanted.
 
 * MD5 - (LibMd5.h, and LibMd5.c)
 * SHA1 - (LibSha1.h, and LibSha1.c)
