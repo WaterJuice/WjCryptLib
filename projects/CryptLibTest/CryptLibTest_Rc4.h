@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Sha1String
+//  CryptLibTest_Rc4
 //
-//  Outputs SHA1 hash of a string specified on command line. Hash is output in hex
+//  Tests the RC4 function against known test vectors to verify algorithms are correct.
 //
 //  This is free and unencumbered software released into the public domain - June 2013 waterjuice.org
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -10,52 +10,19 @@
 //  IMPORTS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include "CryptLib_Sha1.h"
+#include <stdbool.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  FUNCTIONS
+//  PUBLIC FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  main
+//  TestRc4
 //
-//  Program entry point
+//  Test RC4 algorithm against test vectors
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int
-    main
+bool
+    TestRc4
     (
-        int             ArgC,
-        char**          ArgV
-    )
-{
-    char*           string;
-    Sha1Context     sha1Context;
-    SHA1_HASH       sha1Hash;
-    uint16_t        i;
-
-    if( 2 != ArgC )
-    {
-        printf(
-            "Syntax\n"
-            "   Sha1String <String>\n" );
-        return 1;
-    }
-
-    string = ArgV[1];
-
-    Sha1Initialise( &sha1Context );
-    Sha1Update( &sha1Context, string, (uint32_t)strlen(string) );
-    Sha1Finalise( &sha1Context, &sha1Hash );
-
-    for( i=0; i<sizeof(sha1Hash); i++ )
-    {
-        printf( "%2.2x", sha1Hash.bytes[i] );
-    }
-    printf( "\n" );
-
-    return 0;
-}
+        void
+    );
