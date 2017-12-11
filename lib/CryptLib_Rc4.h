@@ -38,10 +38,10 @@ typedef struct
 void
     Rc4Initialise
     (
-        Rc4Context*     Context,
-        void const*     Key,
-        uint32_t        KeySize,
-        uint32_t        DropN
+        Rc4Context*     Context,        // [out]
+        void const*     Key,            // [in]
+        uint32_t        KeySize,        // [in]
+        uint32_t        DropN           // [in]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,9 +52,9 @@ void
 void
     Rc4Output
     (
-        Rc4Context*     Context,
-        void*           Buffer,
-        uint32_t        Size
+        Rc4Context*     Context,        // [in out]
+        void*           Buffer,         // [out]
+        uint32_t        Size            // [in]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,8 +66,8 @@ void
 void
     Rc4Xor
     (
-        Rc4Context*     Context,
-        void const*     InBuffer,
-        void*           OutBuffer,
-        uint32_t        Size
+        Rc4Context*     Context,        // [in out]
+        void const*     InBuffer,       // [in]
+        void*           OutBuffer,      // [out]
+        uint32_t        Size            // [in]
     );

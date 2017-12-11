@@ -101,7 +101,7 @@ int
     uint8_t         buffer [BUFFER_SIZE];
     uint32_t        amountLeft;
     uint32_t        chunk;
-    AesCtrContext   aesCtr = {{0}};
+    AesCtrContext   aesCtr;
     uint8_t         key [AES_KEY_SIZE_256];
     uint32_t        keySize = sizeof(key);
     uint8_t         IV [AES_CTR_IV_SIZE];
@@ -134,7 +134,7 @@ int
 
     numBytes = atoi( ArgV[3] );
 
-    AesCtrInitialiseWithKey( key, keySize, IV, &aesCtr );
+    AesCtrInitialiseWithKey( &aesCtr, key, keySize, IV );
 
     amountLeft = numBytes;
     while( amountLeft > 0 )

@@ -41,9 +41,10 @@ typedef struct
 //
 //  Initialises a SHA512 Context. Use this to initialise/reset a context.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Sha512Initialise
+void
+    Sha512Initialise
     (
-        Sha512Context*          Context
+        Sha512Context*      Context         // [out]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,11 +53,12 @@ void Sha512Initialise
 //  Adds data to the SHA512 context. This will process the data and update the internal state of the context. Keep on
 //  calling this function until all the data has been added. Then call Sha512Finalise to calculate the hash.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Sha512Update
+void
+    Sha512Update
     (
-        Sha512Context*      Context,
-        void const*         Buffer,
-        uint32_t            BufferSize
+        Sha512Context*      Context,        // [in out]
+        void const*         Buffer,         // [in]
+        uint32_t            BufferSize      // [in]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +70,6 @@ void Sha512Update
 void
     Sha512Finalise
     (
-        Sha512Context*          Context,
-        SHA512_HASH*            Digest
+        Sha512Context*      Context,        // [in out]
+        SHA512_HASH*        Digest          // [out]
     );

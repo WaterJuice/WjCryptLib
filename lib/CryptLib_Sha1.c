@@ -158,7 +158,7 @@ void
 void
     Sha1Initialise
     (
-        Sha1Context*                Context
+        Sha1Context*        Context         // [out]
     )
 {
     // SHA1 initialisation constants
@@ -180,9 +180,9 @@ void
 void
     Sha1Update
     (
-        Sha1Context*        Context,
-        void const*         Buffer,
-        uint32_t            BufferSize
+        Sha1Context*        Context,        // [in out]
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize      // [in]
     )
 {
     uint32_t    i;
@@ -223,8 +223,8 @@ void
 void
     Sha1Finalise
     (
-        Sha1Context*                Context,
-        SHA1_HASH*                  Digest
+        Sha1Context*        Context,        // [in out]
+        SHA1_HASH*          Digest          // [in]
     )
 {
     uint32_t    i;

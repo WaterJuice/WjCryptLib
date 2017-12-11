@@ -41,9 +41,10 @@ typedef struct
 //
 //  Initialises a SHA256 Context. Use this to initialise/reset a context.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Sha256Initialise
+void
+    Sha256Initialise
     (
-        Sha256Context*          Context
+        Sha256Context*      Context         // [out]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,11 +53,12 @@ void Sha256Initialise
 //  Adds data to the SHA256 context. This will process the data and update the internal state of the context. Keep on
 //  calling this function until all the data has been added. Then call Sha256Finalise to calculate the hash.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Sha256Update
+void
+    Sha256Update
     (
-        Sha256Context*      Context,
-        void const*         Buffer,
-        uint32_t            BufferSize
+        Sha256Context*      Context,        // [in out]
+        void const*         Buffer,         // [in]
+        uint32_t            BufferSize      // [in]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +70,6 @@ void Sha256Update
 void
     Sha256Finalise
     (
-        Sha256Context*          Context,
-        SHA256_HASH*            Digest
+        Sha256Context*      Context,        // [in out]
+        SHA256_HASH*        Digest          // [out]
     );

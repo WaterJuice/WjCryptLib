@@ -96,9 +96,9 @@ void
 void
     AesCtrInitialise
     (
+        AesCtrContext*      Context,                // [out]
         AesContext const*   InitialisedAesContext,  // [in]
-        uint8_t const       IV [AES_CTR_IV_SIZE],   // [in]
-        AesCtrContext*      Context                 // [out]
+        uint8_t const       IV [AES_CTR_IV_SIZE]    // [in]
     )
 {
     // Setup context values
@@ -121,27 +121,22 @@ void
 int
     AesCtrInitialiseWithKey
     (
+        AesCtrContext*      Context,                // [out]
         uint8_t const*      Key,                    // [in]
         uint32_t            KeySize,                // [in]
-        uint8_t const       IV [AES_CTR_IV_SIZE],   // [in]
-        AesCtrContext*      Context                 // [out]
+        uint8_t const       IV [AES_CTR_IV_SIZE]    // [in]
     )
 {
     AesContext aes;
 
     // Initialise AES Context
-    switch( KeySize )
+    if( 0 != AesInitialise( &aes, Key, KeySize ) )
     {
-    case AES_KEY_SIZE_128: AesInitialise128( Key, &aes ); break;
-    case AES_KEY_SIZE_192: AesInitialise192( Key, &aes ); break;
-    case AES_KEY_SIZE_256: AesInitialise256( Key, &aes ); break;
-    default:
-        // Invalid key size
         return -1;
     }
 
     // Now set-up AesCtrContext
-    AesCtrInitialise( &aes, IV, Context );
+    AesCtrInitialise( Context, &aes, IV );
     return 0;
 }
 
@@ -177,7 +172,7 @@ void
 //  advance the stream index by that number of bytes.
 //  Use once over data to encrypt it. Use it a second time over the same data from the same stream position and the
 //  data will be decrypted.
-//  InBuffer and OutBuffer can point to the same location for inplace encrypting/decrypting
+//  InBuffer and OutBuffer can point to the same location for in-place encrypting/decrypting
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void
     AesCtrXor
@@ -188,47 +183,68 @@ void
         uint32_t            Size                    // [in]
     )
 {
-    uint32_t    amountLeft = Size;
-    uint32_t    outputOffset = 0;
-    uint32_t    chunkSize;
-    uint32_t    amountAvailableInBlock;
+    uint32_t        firstChunkSize;
+    uint32_t        amountAvailableInBlock;
+    int             numIterations;
+    int             i;
+    uint64_t        loopStartingCipherBlockIndex;
+    uint32_t        loopStartingOutputOffset;
+    uint8_t         preCipherBlock [AES_KEY_SIZE_128];
+    uint8_t         encCipherBlock [AES_KEY_SIZE_128];
+    uint64_t        cipherBlockIndex = 0;
 
     // First determine how much is available in the current block.
     amountAvailableInBlock = AES_BLOCK_SIZE - (Context->StreamIndex % AES_BLOCK_SIZE);
 
     // Determine how much of the current block we will take, either all that is available, or less
     // if the amount requested is smaller.
-    chunkSize = MIN( amountAvailableInBlock, amountLeft );
+    firstChunkSize = MIN( amountAvailableInBlock, Size );
 
     // XOR the bytes from the cipher block
-    XorBuffers( InBuffer, Context->CurrentCipherBlock + (AES_BLOCK_SIZE - amountAvailableInBlock), OutBuffer, chunkSize );
+    XorBuffers( InBuffer, Context->CurrentCipherBlock + (AES_BLOCK_SIZE - amountAvailableInBlock), OutBuffer, firstChunkSize );
 
-    amountLeft -= chunkSize;
-    outputOffset += chunkSize;
+    // Determine how many iterations will be needed for generating cipher blocks.
+    // We always have to finish with a non-depleted cipher block.
+    // Also calculate the cipher block index and the output offset for when we start the loop.
+    // This function may be built with OpenMP and the loop will run in parallel. So we set-up variables that will
+    // be common at the start of the loop.
+    numIterations = ( (Size - firstChunkSize) + AES_BLOCK_SIZE ) / AES_BLOCK_SIZE;
+    loopStartingCipherBlockIndex = Context->CurrentCipherBlockIndex + 1;
+    loopStartingOutputOffset = firstChunkSize;
+
+    // Copy the IV into the first half of the preCipherBlock. When built for OpenMP preCipherBlock will be copied into
+    // a local version within the loop.
+    memcpy( preCipherBlock, Context->IV, AES_CTR_IV_SIZE );
 
     // Now start generating new cipher blocks as required.
-    while( amountLeft > 0 )
+    #ifdef _OPENMP
+        #pragma omp parallel for firstprivate( preCipherBlock, cipherBlockIndex ) lastprivate( encCipherBlock, cipherBlockIndex )
+    #endif
+    for( i=0; i<numIterations; i++ )
     {
+        uint32_t outputOffset = loopStartingOutputOffset + (AES_BLOCK_SIZE * i);
+        uint32_t amountLeft = Size - outputOffset;
+        uint32_t chunkSize = MIN( amountLeft, AES_BLOCK_SIZE );
+
         // Increment block index and regenerate cipher block
-        Context->CurrentCipherBlockIndex += 1;
-        CreateCurrentCipherBlock( Context );
+        cipherBlockIndex = loopStartingCipherBlockIndex + i;
 
-        // Determine how much of the current block we need and XOR it out onto the buffer
-        chunkSize = MIN( amountLeft, AES_BLOCK_SIZE );
-        XorBuffers( (uint8_t*)InBuffer + outputOffset, Context->CurrentCipherBlock, (uint8_t*)OutBuffer + outputOffset, chunkSize );
+        // Now place in the counter in Big Endian form in second half of preCipherBlock
+        STORE64H( cipherBlockIndex, preCipherBlock + AES_CTR_IV_SIZE );
 
-        amountLeft -= chunkSize;
-        outputOffset += chunkSize;
+        // Perform AES encryption on the preCipherBlock and put result in encCipherBlock
+        AesEncrypt( &Context->Aes, preCipherBlock, encCipherBlock );
+
+        // XOR block out onto the buffer.
+        XorBuffers( (uint8_t*)InBuffer + outputOffset, encCipherBlock, (uint8_t*)OutBuffer + outputOffset, chunkSize );
     }
 
-    // All data read out now, so update index in the context.
+    // Update context
     Context->StreamIndex += Size;
-
-    // If we ended up completely reading the last cipher block we need to generate a new one for next time.
-    if( AES_BLOCK_SIZE == chunkSize )
+    if( numIterations > 0 )
     {
-        Context->CurrentCipherBlockIndex += 1;
-        CreateCurrentCipherBlock( Context );
+        Context->CurrentCipherBlockIndex = cipherBlockIndex;
+        memcpy( Context->CurrentCipherBlock, encCipherBlock, AES_BLOCK_SIZE );
     }
 }
 
@@ -273,7 +289,7 @@ int
     int             error;
     AesCtrContext   context;
 
-    error = AesCtrInitialiseWithKey( Key, KeySize, IV, &context );
+    error = AesCtrInitialiseWithKey( &context, Key, KeySize, IV );
     if( 0 == error )
     {
         AesCtrXor( &context, InBuffer, OutBuffer, BufferSize );

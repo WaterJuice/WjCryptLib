@@ -146,9 +146,9 @@ int
 
     switch( keySize )
     {
-        case 128/8: AesInitialise128( key, &aesContext ); break;
-        case 192/8: AesInitialise192( key, &aesContext ); break;
-        case 256/8: AesInitialise256( key, &aesContext ); break;
+        case 128/8: AesInitialise( &aesContext, key, AES_KEY_SIZE_128 ); break;
+        case 192/8: AesInitialise( &aesContext, key, AES_KEY_SIZE_192 ); break;
+        case 256/8: AesInitialise( &aesContext, key, AES_KEY_SIZE_256 ); break;
         default:
             printf( "Invalid key size, must be 128, 192, or 256 bits (was %u bits)\n", keySize*8 );
             exit( 1 );

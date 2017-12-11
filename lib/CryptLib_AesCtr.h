@@ -54,9 +54,9 @@ typedef struct
 void
     AesCtrInitialise
     (
+        AesCtrContext*      Context,                // [out]
         AesContext const*   InitialisedAesContext,  // [in]
-        uint8_t const       IV [AES_CTR_IV_SIZE],   // [in]
-        AesCtrContext*      Context                 // [out]
+        uint8_t const       IV [AES_CTR_IV_SIZE]    // [in]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,10 +69,10 @@ void
 int
     AesCtrInitialiseWithKey
     (
+        AesCtrContext*      Context,                // [out]
         uint8_t const*      Key,                    // [in]
         uint32_t            KeySize,                // [in]
-        uint8_t const       IV [AES_CTR_IV_SIZE],   // [in]
-        AesCtrContext*      Context                 // [out]
+        uint8_t const       IV [AES_CTR_IV_SIZE]    // [in]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ void
 //  advance the stream index by that number of bytes.
 //  Use once over data to encrypt it. Use it a second time over the same data from the same stream position and the
 //  data will be decrypted.
-//  InBuffer and OutBuffer can point to the same location for inplace encrypting/decrypting
+//  InBuffer and OutBuffer can point to the same location for in-place encrypting/decrypting
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void
     AesCtrXor

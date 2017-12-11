@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "CryptLib_AesCtr.h"
+#include "CryptLib_Sha1.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  MACROS
@@ -164,6 +165,76 @@ bool
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TestLargeVector
+//
+//  Tests AES CTR against a known large vector (of 1 million bytes). We check it against a known SHA-1 hash of
+//  the output.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static
+bool
+    TestLargeVector
+    (
+        void
+    )
+{
+
+//dd if=/dev/zero iflag=count_bytes count=1000000 status=none | openssl enc -aes-128-ctr -K 00001111222233334444555566667777 -iv 88889999aaaabbbb | openssl sha1
+//(stdin)= 6227c0192b110133fadd6d229790bbdf13c068ab
+
+    uint8_t const*  key = (uint8_t const*)"\x00\x00\x11\x11\x22\x22\x33\x33\x44\x44\x55\x55\x66\x66\x77\x77";
+    uint8_t const*  iv = (uint8_t const*)"\x88\x88\x99\x99\xaa\xaa\xbb\xbb";
+    uint8_t const*  sha1Hash = (uint8_t const*)"\xe1\x63\x5f\xa4\xf5\x7c\x98\x54\xf6\x18\xec\x0c\x8f\x18\x7f\x04\x34\xa2\xe1\x72";
+    uint32_t const  numBytesToGenerate = 1000000;
+
+    uint8_t*        buffer = malloc( numBytesToGenerate );
+    uint32_t        amountLeft = numBytesToGenerate;
+    uint32_t        chunkSize;
+    Sha1Context     sha1Context;
+    AesCtrContext   aesCtrContext;
+    SHA1_HASH       calcSha1;
+
+    // Encrypt in one go first.
+    memset( buffer, 0, numBytesToGenerate );
+    AesCtrXorWithKey( key, AES_KEY_SIZE_128, iv, buffer, buffer, numBytesToGenerate );
+
+    Sha1Initialise( &sha1Context );
+    Sha1Update( &sha1Context, buffer, numBytesToGenerate );
+    Sha1Finalise( &sha1Context, &calcSha1 );
+
+    if( 0 != memcmp( &calcSha1, sha1Hash, SHA1_HASH_SIZE ) )
+    {
+        printf( "Large test vector failed\n" );
+        return false;
+    }
+
+    memset( buffer, 0, numBytesToGenerate );
+
+    // Now encrypt in smaller pieces (10000 bytes at a time)
+    Sha1Initialise( &sha1Context );
+    AesCtrInitialiseWithKey( &aesCtrContext, key, AES_KEY_SIZE_128, iv );
+
+    while( amountLeft > 0 )
+    {
+        memset( buffer, 0, numBytesToGenerate );
+        chunkSize = MIN( amountLeft, 10000 );
+        AesCtrOutput( &aesCtrContext, buffer, chunkSize );
+        Sha1Update( &sha1Context, buffer, chunkSize );
+        amountLeft -= chunkSize;
+    }
+
+    Sha1Finalise( &sha1Context, &calcSha1 );
+
+    if( 0 != memcmp( &calcSha1, sha1Hash, SHA1_HASH_SIZE ) )
+    {
+        printf( "Large test vector failed\n" );
+        return false;
+    }
+
+    return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TestStreamConsistency
 //
 //  Tests that an AES CTR stream is consistent regardless of the chunk sizes of the requests and/or stream
@@ -199,7 +270,7 @@ bool
     }
 
     // Now recreate the stream in small bits. Starting at 1 byte at a time and increasing chunk size
-    AesCtrInitialiseWithKey( key, sizeof(key), iv, &context );
+    AesCtrInitialiseWithKey( &context, key, sizeof(key), iv );
     for( chunkSize=1; chunkSize<64; chunkSize++ )
     {
         uint32_t amountLeft = STREAMSIZE;
@@ -262,7 +333,7 @@ bool
           0xf8, 0x8f, 0x45, 0xd1, 0xf6, 0x68, 0x28, 0x54,
           0x6f, 0xef, 0xce, 0xf9, 0x23, 0x1b, 0xb0, 0x08 };
 
-    AesCtrInitialiseWithKey( key, sizeof(key), iv, &context );
+    AesCtrInitialiseWithKey( &context, key, sizeof(key), iv );
     AesCtrSetStreamIndex( &context, positionIndex );
     AesCtrOutput( &context, output, sizeof(output) );
 
@@ -294,6 +365,9 @@ bool
     bool        success;
 
     success = TestVectors( );
+    if( !success ) { totalSuccess = false; }
+
+    success = TestLargeVector( );
     if( !success ) { totalSuccess = false; }
 
     success = TestStreamConsistency( );

@@ -7,13 +7,27 @@ and a a single .h file. AES-CTR does depend on the AES module, so in this
 case all four files are needed.
 
 The functions are designed to be portable and have been tested on both
-a Little-Endian and a Big-Endian architecture
+a Little-Endian and a Big-Endian architecture. OpenMP is supported where
+parallelisation can occur. 
 
 The library and the demo programs can be built using CMake to generate
 a build setup for any system, including Visual Studio on Windows and
 Make or Ninja for Linux. Refer to cmake.org to get CMake.
 
 *Placed into Public Domain by WaterJuice 2013 - 2017*
+
+Version 2.1.0 - December 2017
+-----------------------------
+
+Changes:
+
+* Changed implementation of AES to one which is almost 5 times as fast.
+The new implementation comes from LibTomCrypt. The newer implementation
+produces a larger binary size as a trade-off.
+* AES-CTR module now supports OpenMP and when compiled with OpenMP will
+run in parallel giving a much greater speed.
+* Changed interface for Initialisation functions for both AES and AES-CTR
+to be match RC4 (The context is first parameter not last)
 
 Version 2.0.0 - December 2017
 -----------------------------
@@ -42,7 +56,6 @@ depending on what cryptographic functions are wanted.
 * AES-CTR - (CryptLib_AesCtr.h, and CryptLib_AesCtr.c, CryptLib_Aes.h,
   and CryptLib_Aes.c)
              
-
 Version 1.0.0 - June 2013
 -------------------------
 

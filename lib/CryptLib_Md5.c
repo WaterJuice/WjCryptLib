@@ -66,10 +66,10 @@ void*
 
     #define GET(n) (ctx->block[(n)])
     #define SET(n) (ctx->block[(n)] =             \
-	        ((uint32_t)ptr[(n)*4 + 0] << 0 )      \
-	    |   ((uint32_t)ptr[(n)*4 + 1] << 8 )      \
-	    |   ((uint32_t)ptr[(n)*4 + 2] << 16)      \
-	    |   ((uint32_t)ptr[(n)*4 + 3] << 24) )
+            ((uint32_t)ptr[(n)*4 + 0] << 0 )      \
+        |   ((uint32_t)ptr[(n)*4 + 1] << 8 )      \
+        |   ((uint32_t)ptr[(n)*4 + 2] << 16)      \
+        |   ((uint32_t)ptr[(n)*4 + 3] << 24) )
 
     ptr = (uint8_t*)data;
 
@@ -188,7 +188,7 @@ void*
 void
     Md5Initialise
     (
-        Md5Context*     Context
+        Md5Context*         Context         // [out]
     )
 {
     Context->a = 0x67452301;
@@ -209,9 +209,9 @@ void
 void
     Md5Update
     (
-        Md5Context*         Context,
-        void const*         Buffer,
-        uint32_t            BufferSize
+        Md5Context*         Context,        // [in out]
+        void const*         Buffer,         // [in]
+        uint32_t            BufferSize      // [in]
     )
 {
     uint32_t    saved_lo;
@@ -261,8 +261,8 @@ void
 void
     Md5Finalise
     (
-        Md5Context*         Context,
-        MD5_HASH*           Digest
+        Md5Context*         Context,        // [in out]
+        MD5_HASH*           Digest          // [in]
     )
 {
     uint32_t    used;

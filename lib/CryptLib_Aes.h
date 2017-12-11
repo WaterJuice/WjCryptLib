@@ -1,18 +1,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  CryptLib_Aes
 //
-//  Implementation of AES block cipher. Originally written by Kokke (https://github.com/kokke). Modified by WaterJuice
-//  retaining Public Domain license.
+//  Implementation of AES block cipher. This implementation was modified from LibTomCrypt written by Tom St Denis
+//  (https://github.com/libtom). Modified by WaterJuice retaining Public Domain license.
+//  Derived from Public Domain source by original authors:
+//      Vincent Rijmen <vincent.rijmen@esat.kuleuven.ac.be>
+//      Antoon Bosselaers <antoon.bosselaers@esat.kuleuven.ac.be>
+//      Paulo Barreto <paulo.barreto@terra.com.br>
 //
 //  AES is a block cipher that operates on 128 bit blocks. Encryption an Decryption routines use an AesContext which
 //  must be initialised with the key. An AesContext can be initialised with a 128, 192, or 256 bit key. Use the
 //  AesInitialise[n] functions to initialise the context with the key. Once an AES context is initialised its contents
 //  are not changed by the encrypting and decrypting functions. A context only needs to be initialised once for any
 //  given key and the context may be used by the encrypt/decrypt functions in simultaneous threads.
-//  All operations are performed byte wise and this implementation works in both little and endian processors.
+//  All operations are performed BYTE wise and this implementation works in both little and endian processors.
 //  There are no alignment requirements with the keys and data blocks.
 //
-//  This is free and unencumbered software released into the public domain - November 2017 waterjuice.org
+//  This is free and unencumbered software released into the public domain - December 2017 waterjuice.org
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
@@ -36,9 +40,9 @@
 // Do not modify the contents of this structure directly.
 typedef struct
 {
-    uint32_t    KeySizeInWords;
-    uint32_t    NumberOfRounds;
-    uint8_t     RoundKey[240];
+    uint32_t        eK[60];
+    uint32_t        dK[60];
+    uint_fast32_t   Nr;
 } AesContext;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,39 +50,17 @@ typedef struct
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  AesInitialise128
+//  AesInitialise
 //
-//  Initialises an AesContext with a 128 bit key.
+//  Initialises an AesContext with an AES Key. KeySize must be 16, 24, or 32 (for 128, 192, or 256 bit key size)
+//  Returns 0 if successful, or -1 if invalid KeySize provided
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    AesInitialise128
+int
+    AesInitialise
     (
-        uint8_t const   Key [AES_KEY_SIZE_128],         // [in]
-        AesContext*     Context                         // [out]
-    );
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  AesInitialise192
-//
-//  Initialises an AesContext with a 192 bit key.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    AesInitialise192
-    (
-        uint8_t const   Key [AES_KEY_SIZE_192],         // [in]
-        AesContext*     Context                         // [out]
-    );
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  AesInitialise256
-//
-//  Initialises an AesContext with a 256 bit key.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    AesInitialise256
-    (
-        uint8_t const   Key [AES_KEY_SIZE_256],         // [in]
-        AesContext*     Context                         // [out]
+        AesContext*         Context,                // [out]
+        void const*         Key,                    // [in]
+        uint32_t            KeySize                 // [in]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -154,7 +154,7 @@ void
 void
     Sha512Initialise
     (
-        Sha512Context*          Context
+        Sha512Context*      Context         // [out]
     )
 {
     Context->curlen = 0;
@@ -178,9 +178,9 @@ void
 void
     Sha512Update
     (
-        Sha512Context*      Context,
-        void const*         Buffer,
-        uint32_t            BufferSize
+        Sha512Context*      Context,        // [in out]
+        void const*         Buffer,         // [in]
+        uint32_t            BufferSize      // [in]
     )
 {
     uint32_t    n;
@@ -225,8 +225,8 @@ void
 void
     Sha512Finalise
     (
-        Sha512Context*          Context,
-        SHA512_HASH*            Digest
+        Sha512Context*      Context,        // [in out]
+        SHA512_HASH*        Digest          // [out]
     )
 {
     int i;

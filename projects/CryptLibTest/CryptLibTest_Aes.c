@@ -117,15 +117,15 @@ bool
 
     for( i=0; i<NUM_TEST_VECTORS; i++ )
     {
-        AesInitialise128( gTestVectors[i].Key128, &context );
+        AesInitialise( &context, gTestVectors[i].Key128, AES_KEY_SIZE_128 );
         AesEncrypt( &context, gTestVectors[i].PlainText, encBlock128 );
         AesDecrypt( &context, gTestVectors[i].CipherText128, decBlock128 );
 
-        AesInitialise192( gTestVectors[i].Key192, &context );
+        AesInitialise( &context, gTestVectors[i].Key192, AES_KEY_SIZE_192 );
         AesEncrypt( &context, gTestVectors[i].PlainText, encBlock192 );
         AesDecrypt( &context, gTestVectors[i].CipherText192, decBlock192 );
 
-        AesInitialise256( gTestVectors[i].Key256, &context );
+        AesInitialise( &context, gTestVectors[i].Key256, AES_KEY_SIZE_256 );
         AesEncrypt( &context, gTestVectors[i].PlainText, encBlock256 );
         AesDecrypt( &context, gTestVectors[i].CipherText256, decBlock256 );
 
