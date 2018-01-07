@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  AesCtrOutput
+//  AesOfbOutput
 //
-//  Outputs bytes from an AES CTR stream. Key and IV are taken from command line. Bytes are output as hex
+//  Outputs bytes from an AES OFB stream. Key and IV are taken from command line. Bytes are output as hex
 //
-//  This is free and unencumbered software released into the public domain - November 2017 waterjuice.org
+//  This is free and unencumbered software released into the public domain - January 2018 waterjuice.org
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "WjCryptLib_AesCtr.h"
+#include "WjCryptLib_AesOfb.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  DEFINITIONS
@@ -101,19 +101,19 @@ int
     uint8_t         buffer [BUFFER_SIZE];
     uint32_t        amountLeft;
     uint32_t        chunk;
-    AesCtrContext   aesCtr;
+    AesOfbContext   aesOfb;
     uint8_t         key [AES_KEY_SIZE_256];
     uint32_t        keySize = sizeof(key);
-    uint8_t         IV [AES_CTR_IV_SIZE];
+    uint8_t         IV [AES_OFB_IV_SIZE];
     uint32_t        IVSize = sizeof(IV);
 
     if( 4 != ArgC )
     {
         printf(
             "Syntax\n"
-            "   AesCtrOutput <Key> <IV> <NumBytes>\n"
+            "   AesOfbOutput <Key> <IV> <NumBytes>\n"
             "     <Key> - 128, 192, or 256 bit written as hex\n"
-            "     <IV>  - 64 bit written as hex\n"
+            "     <IV>  - 128 bit written as hex\n"
             "     <NumBytes> - Number of bytes of stream to output\n" );
         return 1;
     }
@@ -126,21 +126,21 @@ int
     }
 
     ReadHexData( ArgV[2], IV, &IVSize );
-    if( AES_CTR_IV_SIZE != IVSize )
+    if( AES_OFB_IV_SIZE != IVSize )
     {
-        printf( "Invalid IV size. Must be 64 bits\n" );
+        printf( "Invalid IV size. Must be 128 bits\n" );
         return 1;
     }
 
     numBytes = atoi( ArgV[3] );
 
-    AesCtrInitialiseWithKey( &aesCtr, key, keySize, IV );
+    AesOfbInitialiseWithKey( &aesOfb, key, keySize, IV );
 
     amountLeft = numBytes;
     while( amountLeft > 0 )
     {
         chunk = __min( amountLeft, BUFFER_SIZE );
-        AesCtrOutput( &aesCtr, buffer, chunk );
+        AesOfbOutput( &aesOfb, buffer, chunk );
         amountLeft -= chunk;
 
         for( i=0; i<chunk; i++ )

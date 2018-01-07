@@ -1,7 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Sha512String
+//  WjCryptLibTest_Hashes
 //
-//  Outputs SHA512 hash of a string specified on command line. Hash is output in hex
+//  Tests the hash functions against known test vectors to verify algorithms are correct.
+//  Tests the following:
+//     MD5
+//     SHA1
+//     SHA256
+//     SHA512
 //
 //  This is free and unencumbered software released into the public domain - June 2013 waterjuice.org
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -10,52 +15,19 @@
 //  IMPORTS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include "WjCryptLib_Sha512.h"
+#include <stdbool.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  FUNCTIONS
+//  PUBLIC FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  main
+//  TestHashes
 //
-//  Program entry point
+//  Test Hash functions algorithm against test vectors
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int
-    main
+bool
+    TestHashes
     (
-        int             ArgC,
-        char**          ArgV
-    )
-{
-    char*           string;
-    Sha512Context   sha512Context;
-    SHA512_HASH     sha512Hash;
-    uint16_t        i;
-
-    if( 2 != ArgC )
-    {
-        printf(
-            "Syntax\n"
-            "   Sha512String <String>\n" );
-        return 1;
-    }
-
-    string = ArgV[1];
-
-    Sha512Initialise( &sha512Context );
-    Sha512Update( &sha512Context, string, (uint32_t)strlen(string) );
-    Sha512Finalise( &sha512Context, &sha512Hash );
-
-    for( i=0; i<sizeof(sha512Hash); i++ )
-    {
-        printf( "%2.2x", sha512Hash.bytes[i] );
-    }
-    printf( "\n" );
-
-    return 0;
-}
+        void
+    );

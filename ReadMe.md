@@ -1,7 +1,7 @@
-CryptLib
-========
+WjCryptLib
+==========
 
-CryptLib is a collection of cryptographic functions written in C. Each
+WjCryptLib is a collection of cryptographic functions written in C. Each
 module is fully independent and generally requires only a single .c file
 and a a single .h file. AES-CTR does depend on the AES module, so in this
 case all four files are needed.
@@ -14,7 +14,33 @@ The library and the demo programs can be built using CMake to generate
 a build setup for any system, including Visual Studio on Windows and
 Make or Ninja for Linux. Refer to cmake.org to get CMake.
 
-*Placed into Public Domain by WaterJuice 2013 - 2017*
+*Placed into Public Domain by WaterJuice 2013 - 2018*
+
+Library
+-------
+
+To use the library functions, only the following files are required,
+depending on what cryptographic functions are wanted.
+
+* MD5 - (WjCryptLib_Md5.h, and WjCryptLib_Md5.c)
+* SHA1 - (WjCryptLib_Sha1.h, and WjCryptLib_Sha1.c)
+* SHA256 - (WjCryptLib_Sha256.h, and WjCryptLib_Sha256.c)
+* SHA512 - (WjCryptLib_Sha512.h, and WjCryptLib_Sha512.c)
+* RC4 - (WjCryptLib_Rc4.h, and WjCryptLib_Rc4.c)
+* AES - (WjCryptLib_Aes.h, and WjCryptLib_Aes.c)
+* AES-CTR - (WjCryptLib_AesCtr.h, and WjCryptLib_AesCtr.c, WjCryptLib_Aes.h,
+  and WjCryptLib_Aes.c)
+* AES-OFB - (WjCryptLib_AesOfb.h, and WjCryptLib_AesOfb.c, WjCryptLib_Aes.h,
+  and WjCryptLib_Aes.c)
+
+
+Version 2.2.0 - January 2018
+------------
+
+* Added AES-OFB module.
+* File names have been changed to have the prefix `WjCryptLib_` rather
+than `CryptLib_`.
+* Removed compiled binaries from source tree.
 
 Version 2.1.0 - December 2017
 -----------------------------
@@ -44,35 +70,22 @@ projects. CMake will generate whatever system is required.
 than `Lib`.
 * Various formatting changes to the files.
 
-To use the library functions, only the following files are required,
-depending on what cryptographic functions are wanted.
-
-* MD5 - (CryptLib_Md5.h, and CryptLib_Md5.c)
-* SHA1 - (CryptLib_Sha1.h, and CryptLib_Sha1.c)
-* SHA256 - (CryptLib_Sha256.h, and CryptLib_Sha256.c)
-* SHA512 - (CryptLib_Sha512.h, and CryptLib_Sha512.c)
-* RC4 - (CryptLib_Rc4.h, and CryptLib_Rc4.c)
-* AES - (CryptLib_Aes.h, and CryptLib_Aes.c)
-* AES-CTR - (CryptLib_AesCtr.h, and CryptLib_AesCtr.c, CryptLib_Aes.h,
-  and CryptLib_Aes.c)
-             
 Version 1.0.0 - June 2013
 -------------------------
 
-To use the library functions, only the following files are required,
-depending on what cryptographic functions are wanted.
+Contains following algorithms:
 
-* MD5 - (LibMd5.h, and LibMd5.c)
-* SHA1 - (LibSha1.h, and LibSha1.c)
-* SHA256 - (LibSha256.h, and LibSha256.c)
-* SHA512 - (LibSha512.h, and LibSha512.c)
-* RC4 - (LibRc4.h, and LibRc4.c)
+* MD5
+* SHA1
+* SHA256
+* SHA512
+* RC4
 
 Test Programs
 -------------
 
 In the projects directory there are several programs that compile to
-command line executables. One is CryptLibTest. This tests the algorithms
+command line executables. One is WjCryptLibTest. This tests the algorithms
 against known test vectors. If compiling on a different system this
 is useful to verify that the results are still valid.
 
@@ -88,16 +101,10 @@ output the stream in hex.
 * Rc4Output
 * AesBlock
 * AesCtrOutput
+* AesOfbOutput
 
-Executables
------------
-
-Included in the Exe directory are executables of the above programs for Windows,
-MacOS, and Linux. All of them are compiled for x64 versions of the operating
-systems. 
-
-License
-=======
+Unlicense
+=========
 
 This is free and unencumbered software released into the public domain.
 

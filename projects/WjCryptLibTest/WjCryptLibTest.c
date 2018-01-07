@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Sha512String
+//  WjCryptLibTest
 //
-//  Outputs SHA512 hash of a string specified on command line. Hash is output in hex
+//  Tests the cryptography functions against known test vectors to verify algorithms are correct.
 //
 //  This is free and unencumbered software released into the public domain - June 2013 waterjuice.org
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "WjCryptLib_Sha512.h"
+#include <stdbool.h>
+#include "WjCryptLibTest_Aes.h"
+#include "WjCryptLibTest_AesCtr.h"
+#include "WjCryptLibTest_AesOfb.h"
+#include "WjCryptLibTest_Hashes.h"
+#include "WjCryptLibTest_Rc4.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FUNCTIONS
@@ -28,34 +33,46 @@
 int
     main
     (
-        int             ArgC,
-        char**          ArgV
+        void
     )
 {
-    char*           string;
-    Sha512Context   sha512Context;
-    SHA512_HASH     sha512Hash;
-    uint16_t        i;
+    bool    success;
+    bool    allSuccess = true;
 
-    if( 2 != ArgC )
+    printf(
+        "WjCryptLibTest\n"
+        "------------\n"
+        "\n" );
+
+    success = TestHashes( );
+    if( !success ) { allSuccess = false; }
+
+    success = TestRc4( );
+    if( !success ) { allSuccess = false; }
+    printf( "Test RC4     - %s\n", success?"Pass":"Fail" );
+
+    success = TestAes( );
+    if( !success ) { allSuccess = false; }
+    printf( "Test AES     - %s\n", success?"Pass":"Fail" );
+
+    success = TestAesCtr( );
+    if( !success ) { allSuccess = false; }
+    printf( "Test AES CTR - %s\n", success?"Pass":"Fail" );
+
+    success = TestAesOfb( );
+    if( !success ) { allSuccess = false; }
+    printf( "Test AES OFB - %s\n", success?"Pass":"Fail" );
+
+    printf( "\n" );
+    if( allSuccess )
     {
-        printf(
-            "Syntax\n"
-            "   Sha512String <String>\n" );
+        printf( "All tests passed.\n" );
+    }
+    else
+    {
+        printf( "Fail.\n" );
         return 1;
     }
-
-    string = ArgV[1];
-
-    Sha512Initialise( &sha512Context );
-    Sha512Update( &sha512Context, string, (uint32_t)strlen(string) );
-    Sha512Finalise( &sha512Context, &sha512Hash );
-
-    for( i=0; i<sizeof(sha512Hash); i++ )
-    {
-        printf( "%2.2x", sha512Hash.bytes[i] );
-    }
-    printf( "\n" );
 
     return 0;
 }
