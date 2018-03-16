@@ -32,10 +32,23 @@ depending on what cryptographic functions are wanted.
   and WjCryptLib_Aes.c)
 * AES-OFB - (WjCryptLib_AesOfb.h, and WjCryptLib_AesOfb.c, WjCryptLib_Aes.h,
   and WjCryptLib_Aes.c)
+* AES-CBC - (WjCryptLib_AesCbc.h, and WjCryptLib_AesCbc.c, WjCryptLib_Aes.h,
+  and WjCryptLib_Aes.c)
 
+
+Version 2.3.0 - March 2018
+--------------------------
+
+* Added AES-CBC module.
+* Added functions Md5Calculate, Sha1Calculate, Sha256Calculate, and
+  Sha512Calculate to calculate a hash in one call.
+* Added function Rc4XorWithKey to encrypt/decrypt a buffer with RC4 in
+  one call.
+* Bugfix: AesInitialise now returns -1 if invalid key size is provided.
+  Previously it would return 0 despite what was documented.
 
 Version 2.2.0 - January 2018
-------------
+----------------------------
 
 * Added AES-OFB module.
 * File names have been changed to have the prefix `WjCryptLib_` rather

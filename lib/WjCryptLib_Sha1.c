@@ -247,3 +247,23 @@ void
         Digest->bytes[i] = (uint8_t)((Context->State[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Sha1Calculate
+//
+//  Combines Sha1Initialise, Sha1Update, and Sha1Finalise into one function. Calculates the SHA1 hash of the buffer.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Sha1Calculate
+    (
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize,     // [in]
+        SHA1_HASH*          Digest          // [in]
+    )
+{
+    Sha1Context context;
+
+    Sha1Initialise( &context );
+    Sha1Update( &context, Buffer, BufferSize );
+    Sha1Finalise( &context, Digest );
+}

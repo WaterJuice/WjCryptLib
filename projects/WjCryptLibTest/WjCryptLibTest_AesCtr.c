@@ -233,7 +233,6 @@ bool
     return true;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TestStreamConsistency
 //
@@ -327,7 +326,7 @@ bool
     uint8_t const   iv [AES_CTR_IV_SIZE] = { 5,5,5,5,6,6,6,6 };
     uint64_t const  positionIndex = 0x1020304050607080ULL;
     uint8_t         output [256 / 8] = {0};
-    uint8_t const   vector [256 / 8] = 
+    uint8_t const   vector [256 / 8] =
         { 0x17, 0x07, 0x27, 0x7b, 0x9e, 0x51, 0xdf, 0x5b,
           0x23, 0xbe, 0xa1, 0xce, 0xc9, 0x40, 0x49, 0xfc,
           0xf8, 0x8f, 0x45, 0xd1, 0xf6, 0x68, 0x28, 0x54,

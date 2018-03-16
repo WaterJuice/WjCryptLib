@@ -42,7 +42,7 @@
 //  This function ignores any character that isn't a hex character.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static
-void 
+void
     ReadHexData
     (
         char const*         HexString,          // [in]

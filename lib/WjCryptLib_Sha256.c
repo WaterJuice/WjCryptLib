@@ -271,3 +271,24 @@ void
         STORE32H( Context->state[i], Digest->bytes+(4*i) );
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Sha256Calculate
+//
+//  Combines Sha256Initialise, Sha256Update, and Sha256Finalise into one function. Calculates the SHA256 hash of the
+//  buffer.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Sha256Calculate
+    (
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize,     // [in]
+        SHA256_HASH*        Digest          // [in]
+    )
+{
+    Sha256Context context;
+
+    Sha256Initialise( &context );
+    Sha256Update( &context, Buffer, BufferSize );
+    Sha256Finalise( &context, Digest );
+}

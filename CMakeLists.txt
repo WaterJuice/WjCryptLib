@@ -6,6 +6,8 @@ project( WjCryptLib )
 add_library( WjCryptLib STATIC
     lib/WjCryptLib_Aes.h
     lib/WjCryptLib_Aes.c
+    lib/WjCryptLib_AesCbc.h
+    lib/WjCryptLib_AesCbc.c
     lib/WjCryptLib_AesCtr.h
     lib/WjCryptLib_AesCtr.c
     lib/WjCryptLib_AesOfb.h

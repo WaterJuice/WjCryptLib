@@ -789,6 +789,10 @@ int
             rk += 8;
         }
     }
+    else
+    {
+        return -1;
+    }
 
     // Setup the inverse key now
     rk  = Context->dK;

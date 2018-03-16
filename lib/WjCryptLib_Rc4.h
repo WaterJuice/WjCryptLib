@@ -71,3 +71,21 @@ void
         void*           OutBuffer,      // [out]
         uint32_t        Size            // [in]
     );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Rc4XorWithKey
+//
+//  This function combines Rc4Initialise and Rc4Xor. This is suitable when encrypting/decrypting data in one go with a
+//  key that is not going to be reused.
+//  InBuffer and OutBuffer can point to the same location for inplace encrypting/decrypting
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Rc4XorWithKey
+    (
+        uint8_t const*      Key,                    // [in]
+        uint32_t            KeySize,                // [in]
+        uint32_t            DropN,                  // [in]
+        void const*         InBuffer,               // [in]
+        void*               OutBuffer,              // [out]
+        uint32_t            BufferSize              // [in]
+    );

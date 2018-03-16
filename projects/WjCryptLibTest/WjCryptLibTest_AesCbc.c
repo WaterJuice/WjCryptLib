@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  WjCryptLibTest_AesOfb
+//  WjCryptLibTest_AesCbc
 //
 //  Tests the cryptography functions against known test vectors to verify algorithms are correct.
 //  Tests the following:
-//     AES OFB
+//     AES CBC
 //
-//  This is free and unencumbered software released into the public domain - January 2018 waterjuice.org
+//  This is free and unencumbered software released into the public domain - March 2018 waterjuice.org
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17,8 +17,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include "WjCryptLib_AesOfb.h"
+#include "WjCryptLib_AesCbc.h"
 #include "WjCryptLib_Sha1.h"
+#include "WjCryptLib_Rc4.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  MACROS
@@ -44,43 +45,45 @@ typedef struct
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // These test vectors were created using openssl. Using the following commands:
-//   > dd if=/dev/zero iflag=count_bytes count=48 status=none | openssl enc -aes-128-ofb -K 00000000000000000000000000000000 -iv 00000000000000000000000000000000 | xxd -p -c 48
-//   > dd if=/dev/zero iflag=count_bytes count=48 status=none | openssl enc -aes-128-ofb -K 0102030405060708a1a2a3a4a5a6a7a8 -iv 00000000000000000000000000000000 | xxd -p -c 48
-//   > dd if=/dev/zero iflag=count_bytes count=48 status=none | openssl enc -aes-128-ofb -K 00000000000000000000000000000000 -iv b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8 | xxd -p -c 48
-//   > dd if=/dev/zero iflag=count_bytes count=48 status=none | openssl enc -aes-128-ofb -K 0102030405060708a1a2a3a4a5a6a7a8 -iv b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8 | xxd -p -c 48
-//   > dd if=/dev/zero iflag=count_bytes count=48 status=none | openssl enc -aes-192-ofb -K 0102030405060708a1a2a3a4a5a6a7a8b1b2b3b4b5b6b7b8 -iv c1c2c3c4c5c6c7c8d1d2d3d4d5d6d7d8 | xxd -p -c 48
-//   > dd if=/dev/zero iflag=count_bytes count=48 status=none | openssl enc -aes-256-ofb -K 0102030405060708a1a2a3a4a5a6a7a8b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8 -iv d1d2d3d4d5d6d7d8e1e2e3e4e5e6e7e8 | xxd -p -c 48
+// (Note: As CBC is not a stream cipher, the input is created using an RC4 stream generated from a key of 0)
+// (Also note: openssl outputs an additional block of data due to some padding. We ignore this)
+//   > dd if=/dev/zero iflag=count_bytes count=64 status=none | openssl enc -rc4 -K 0 | openssl enc -aes-128-cbc -K 00000000000000000000000000000000 -iv 00000000000000000000000000000000 | head -c 64 | xxd -p -c 64
+//   > dd if=/dev/zero iflag=count_bytes count=64 status=none | openssl enc -rc4 -K 0 | openssl enc -aes-128-cbc -K 0102030405060708a1a2a3a4a5a6a7a8 -iv 00000000000000000000000000000000 | head -c 64 | xxd -p -c 64
+//   > dd if=/dev/zero iflag=count_bytes count=64 status=none | openssl enc -rc4 -K 0 | openssl enc -aes-128-cbc -K 00000000000000000000000000000000 -iv b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8 | head -c 64 | xxd -p -c 64
+//   > dd if=/dev/zero iflag=count_bytes count=64 status=none | openssl enc -rc4 -K 0 | openssl enc -aes-128-cbc -K 0102030405060708a1a2a3a4a5a6a7a8 -iv b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8 | head -c 64 | xxd -p -c 64
+//   > dd if=/dev/zero iflag=count_bytes count=64 status=none | openssl enc -rc4 -K 0 | openssl enc -aes-192-cbc -K 0102030405060708a1a2a3a4a5a6a7a8b1b2b3b4b5b6b7b8 -iv c1c2c3c4c5c6c7c8d1d2d3d4d5d6d7d8 | head -c 64 | xxd -p -c 64
+//   > dd if=/dev/zero iflag=count_bytes count=64 status=none | openssl enc -rc4 -K 0 | openssl enc -aes-256-cbc -K 0102030405060708a1a2a3a4a5a6a7a8b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8 -iv d1d2d3d4d5d6d7d8e1e2e3e4e5e6e7e8 | head -c 64 | xxd -p -c 64
 static TestVector gTestVectors [] =
 {
     {
         "00000000000000000000000000000000",
         "00000000000000000000000000000000",
-        "66e94bd4ef8a2c3b884cfa59ca342b2ef795bd4a52e29ed713d313fa20e98dbca10cf66d0fddf3405370b4bf8df5bfb3"
+        "c2af41ffe8b9f1b295d68038e3e8ed3f70b72b168cd3d402ccbf0bb4fa12561fc703951c91d8ce81c5643155b5db1d34eb7b36c2cc4715c03ea24944bb5c5625"
     },
     {
         "0102030405060708a1a2a3a4a5a6a7a8",
         "00000000000000000000000000000000",
-        "cdb33c236caa155b28d14e6db35053718a906fc0050ae8ad054621e487e5b0a264873309a9471152104a0a51361a91af"
+        "638198794af111670d5d7a7e13851484f71831108a5a134a9329787ad73379eb449e5068150233c4f0ae8c08d86708bc09724efaad3e6936e03c58f83f2abf3f"
     },
     {
         "00000000000000000000000000000000",
         "b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8",
-        "93fc4d6374dc544d40181d39066e9b0077aa627a84dbd57c9e72a1bbbc8bd1e082faf44d5ce57f6320e9f33d38a3a268"
+        "c696d1b757d5b4ee2069d1c50b1e5569aa931d0ecc058a5adce099e2f844153db0cf0884102720e42ab58efe449faba054edd92c4006fffbd9b0aec297b852ae"
     },
     {
         "0102030405060708a1a2a3a4a5a6a7a8",
         "b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8",
-        "551eb0c4d89d7e1b537b30f627cc5a0afdebd5a07483107df8555dbae9453189ae13766c9678554971151486cee958af"
+        "a3c80c1c5ee817ad5faf31c6610e7895f480bdc9055362f0a7148b47b1dc5f11d041d94026266625cd6b512451a539ee9f3820667a84ace6cfbbe7edf746a14d"
     },
     {
         "0102030405060708a1a2a3a4a5a6a7a8b1b2b3b4b5b6b7b8",
         "c1c2c3c4c5c6c7c8d1d2d3d4d5d6d7d8",
-        "e9128df92fd1da443f826d84fd46be40fffb4ad23477a02efb14cbfd9a28ebcc2e6a5948cd1980e7cd6f5d386f7f6539"
+        "93928e29c82e5536bc5942c35bbbd4d7a69f0a7daa35c77ecb13b3ac2c46c473cb608f403982d8401385fd7fe66a1e329aa0f90a50180fb73b36e98cb7214736"
     },
     {
         "0102030405060708a1a2a3a4a5a6a7a8b1b2b3b4b5b6b7b8c1c2c3c4c5c6c7c8",
         "d1d2d3d4d5d6d7d8e1e2e3e4e5e6e7e8",
-        "06a9a20023d47df78a5ead97715a85921cab7d5114fb74a1b99e66d915a0e125a0fcf198d93364235f9a33c02dc170f6"
+        "2b559a644b62f1540c4ff9c50140fadedeefd49de9827dfbc8be8e4f7e2ac4ea746c8432d184059f62facaf765d90eadb7bdecac5e23bdc23f4026cd32d18ae2"
     },
 };
 
@@ -129,7 +132,7 @@ void
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TestVectors
 //
-//  Tests AES OFB against fixed test vectors
+//  Tests AES CBC against fixed test vectors
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static
 bool
@@ -141,10 +144,17 @@ bool
     uint32_t        vectorIndex;
     uint8_t         key [AES_KEY_SIZE_256];
     uint32_t        keySize = 0;
-    uint8_t         iv [AES_OFB_IV_SIZE];
+    uint8_t         iv [AES_CBC_IV_SIZE];
     uint8_t         vector [TEST_VECTOR_OUTPUT_SIZE];
-    uint8_t         aesOfbOutput [TEST_VECTOR_OUTPUT_SIZE];
-    uint8_t const   zeroBuffer [TEST_VECTOR_OUTPUT_SIZE] = {0};
+    uint8_t         aesCbcOutput [TEST_VECTOR_OUTPUT_SIZE];
+    uint8_t         decryptBuffer [TEST_VECTOR_OUTPUT_SIZE];
+    uint8_t         inputBuffer [TEST_VECTOR_OUTPUT_SIZE] = {0};
+    uint8_t         rc4Key = 0;
+
+    // We can't encrypt just a zero buffer or we will end up with same result as OFB. As this is not a stream
+    // cipher we need to change the input. These test vectors were generated by using an RC4 stream as input.
+    // The RC4 stream is created by using a key of 0.
+    Rc4XorWithKey( &rc4Key, sizeof(rc4Key), 0, inputBuffer, inputBuffer, sizeof(inputBuffer) );
 
     for( vectorIndex=0; vectorIndex<NUM_TEST_VECTORS; vectorIndex++ )
     {
@@ -152,10 +162,17 @@ bool
         HexToBytes( gTestVectors[vectorIndex].IvHex,         iv, NULL );
         HexToBytes( gTestVectors[vectorIndex].CipherTextHex, vector, NULL );
 
-        AesOfbXorWithKey( key, keySize, iv, zeroBuffer, aesOfbOutput, TEST_VECTOR_OUTPUT_SIZE );
-        if( 0 != memcmp( aesOfbOutput, vector, TEST_VECTOR_OUTPUT_SIZE ) )
+        AesCbcEncryptWithKey( key, keySize, iv, inputBuffer, aesCbcOutput, TEST_VECTOR_OUTPUT_SIZE );
+        if( 0 != memcmp( aesCbcOutput, vector, TEST_VECTOR_OUTPUT_SIZE ) )
         {
             printf( "Test vector (index:%u) failed\n", vectorIndex );
+            return false;
+        }
+
+        AesCbcDecryptWithKey( key, keySize, iv, aesCbcOutput, decryptBuffer, TEST_VECTOR_OUTPUT_SIZE );
+        if( 0 != memcmp( decryptBuffer, inputBuffer, TEST_VECTOR_OUTPUT_SIZE ) )
+        {
+            printf( "Test vector (index:%u) failed decrypt\n", vectorIndex );
             return false;
         }
     }
@@ -177,32 +194,50 @@ bool
     )
 {
 
-//dd if=/dev/zero iflag=count_bytes count=1000000 status=none | openssl enc -aes-128-ofb -K 00001111222233334444555566667777 -iv 88889999aaaabbbbccccddddeeeeffff | openssl sha1
-//(stdin)= a0824dca21938b33a5a8db26c8ab2428624db6d3
+//dd if=/dev/zero iflag=count_bytes count=1000000 status=none | openssl enc -rc4 -K 0 | openssl enc -aes-128-cbc -K 00001111222233334444555566667777 -iv 88889999aaaabbbbccccddddeeeeffff | head -c 1000000 | openssl sha1
+//(stdin)= 859463d3f0f27e67d37f05603f19b9d5c71c2059
 
     uint8_t const*  key = (uint8_t const*)"\x00\x00\x11\x11\x22\x22\x33\x33\x44\x44\x55\x55\x66\x66\x77\x77";
     uint8_t const*  iv = (uint8_t const*)"\x88\x88\x99\x99\xaa\xaa\xbb\xbb\xcc\xcc\xdd\xdd\xee\xee\xff\xff";
-    uint8_t const*  sha1Hash = (uint8_t const*)"\xa0\x82\x4d\xca\x21\x93\x8b\x33\xa5\xa8\xdb\x26\xc8\xab\x24\x28\x62\x4d\xb6\xd3";
+    uint8_t const*  sha1Hash = (uint8_t const*)"\x85\x94\x63\xd3\xf0\xf2\x7e\x67\xd3\x7f\x05\x60\x3f\x19\xb9\xd5\xc7\x1c\x20\x59";
     uint32_t const  numBytesToGenerate = 1000000;
+    uint8_t const   rc4Key = 0;
 
     uint8_t*        buffer = malloc( numBytesToGenerate );
+    uint8_t*        buffer2 = malloc( numBytesToGenerate );
     uint32_t        amountLeft = numBytesToGenerate;
     uint32_t        chunkSize;
     Sha1Context     sha1Context;
-    AesOfbContext   aesOfbContext;
+    AesCbcContext   aesCbcContext;
     SHA1_HASH       calcSha1;
+    uint32_t        offset;
+    SHA1_HASH       initialInputSha1;
 
     // Encrypt in one go first.
+    // Generate the Rc4 stream to encrypt
     memset( buffer, 0, numBytesToGenerate );
-    AesOfbXorWithKey( key, AES_KEY_SIZE_128, iv, buffer, buffer, numBytesToGenerate );
+    Rc4XorWithKey( &rc4Key, 1, 0, buffer, buffer, numBytesToGenerate );
+    Sha1Calculate( buffer, numBytesToGenerate, &initialInputSha1 );
+
+    AesCbcEncryptWithKey( key, AES_KEY_SIZE_128, iv, buffer, buffer2, numBytesToGenerate );
 
     Sha1Initialise( &sha1Context );
-    Sha1Update( &sha1Context, buffer, numBytesToGenerate );
+    Sha1Update( &sha1Context, buffer2, numBytesToGenerate );
     Sha1Finalise( &sha1Context, &calcSha1 );
 
     if( 0 != memcmp( &calcSha1, sha1Hash, SHA1_HASH_SIZE ) )
     {
-        printf( "Large test vector failed\n" );
+        printf( "Large test vector failed (1)\n" );
+        return false;
+    }
+
+    // Now decrypt the buffer to verify it goes back to the original.
+    AesCbcDecryptWithKey( key, AES_KEY_SIZE_128, iv, buffer, buffer2, numBytesToGenerate );
+    Sha1Calculate( buffer, numBytesToGenerate, &calcSha1 );
+
+    if( 0 != memcmp( &calcSha1, &initialInputSha1, SHA1_HASH_SIZE ) )
+    {
+        printf( "Large test vector failed decrypting\n" );
         return false;
     }
 
@@ -210,94 +245,30 @@ bool
 
     // Now encrypt in smaller pieces (10000 bytes at a time)
     Sha1Initialise( &sha1Context );
-    AesOfbInitialiseWithKey( &aesOfbContext, key, AES_KEY_SIZE_128, iv );
+    AesCbcInitialiseWithKey( &aesCbcContext, key, AES_KEY_SIZE_128, iv );
+
+    memset( buffer, 0, numBytesToGenerate );
+    Rc4XorWithKey( &rc4Key, 1, 0, buffer, buffer, numBytesToGenerate );
+    offset = 0;
 
     while( amountLeft > 0 )
     {
-        memset( buffer, 0, numBytesToGenerate );
         chunkSize = MIN( amountLeft, 10000 );
-        AesOfbOutput( &aesOfbContext, buffer, chunkSize );
-        Sha1Update( &sha1Context, buffer, chunkSize );
+        AesCbcEncrypt( &aesCbcContext, buffer+offset, buffer+offset, chunkSize );
+        Sha1Update( &sha1Context, buffer+offset, chunkSize );
         amountLeft -= chunkSize;
+        offset += chunkSize;
     }
 
     Sha1Finalise( &sha1Context, &calcSha1 );
 
     if( 0 != memcmp( &calcSha1, sha1Hash, SHA1_HASH_SIZE ) )
     {
-        printf( "Large test vector failed\n" );
+        printf( "Large test vector failed (2)\n" );
         return false;
     }
 
     return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  TestStreamConsistency
-//
-//  Tests that an AES OFB stream is consistent regardless of the chunk sizes of the requests and/or stream
-//  repositioning.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static
-bool
-    TestStreamConsistency
-    (
-        void
-    )
-{
-    bool            success = true;
-    uint8_t const   key[AES_KEY_SIZE_128] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
-    uint8_t const   iv[AES_OFB_IV_SIZE] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
-    #define STREAMSIZE 1000
-    uint8_t         stream [STREAMSIZE];
-    uint8_t         newStream [STREAMSIZE];
-    uint8_t const   zeroStream [STREAMSIZE] = {0};
-    AesOfbContext   context;
-    uint32_t        chunkSize;
-
-    // First fill in stream with 1000 bytes generated in one go.
-    memset( stream, 0, STREAMSIZE );
-    AesOfbXorWithKey( key, sizeof(key), iv, stream, stream, STREAMSIZE );
-
-    // Perform sanity check that the key is not all zero!
-    if( 0 == memcmp( stream, zeroStream, STREAMSIZE ) )
-    {
-        printf( "AES OFB Stream all zero\n" );
-        success = false;
-        return success;
-    }
-
-    // Now recreate the stream in small bits. Starting at 1 byte at a time and increasing chunk size
-    for( chunkSize=1; chunkSize<64; chunkSize++ )
-    {
-        uint32_t amountLeft = STREAMSIZE;
-        uint32_t offset = 0;
-        memset( newStream, 0, STREAMSIZE );
-
-        AesOfbInitialiseWithKey( &context, key, sizeof(key), iv );
-
-        while( amountLeft > 0 )
-        {
-            uint32_t thisChunkSize = MIN( chunkSize, amountLeft );
-
-            AesOfbOutput( &context, newStream+offset, thisChunkSize );
-
-            offset += thisChunkSize;
-            amountLeft -= thisChunkSize;
-        }
-
-        // Now verify that the stream is consistent with the one generated all at once.
-        if( 0 != memcmp( stream, newStream, STREAMSIZE ) )
-        {
-            printf( "AES OFB Stream not consistent\n" );
-            success = false;
-            break;
-        }
-    }
-
-    #undef STREAMSIZE
-
-    return success;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,10 +278,10 @@ bool
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TestAesOfb
 //
-//  Test AES OFB algorithm
+//  Test AES CBC algorithm
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool
-    TestAesOfb
+    TestAesCbc
     (
         void
     )
@@ -322,9 +293,6 @@ bool
     if( !success ) { totalSuccess = false; }
 
     success = TestLargeVector( );
-    if( !success ) { totalSuccess = false; }
-
-    success = TestStreamConsistency( );
     if( !success ) { totalSuccess = false; }
 
     return totalSuccess;

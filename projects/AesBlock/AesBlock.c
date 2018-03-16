@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  AesBlock
 //
-//  Encrypts or Decrypts a single 128 bit block specified on the command line as a hex string. Key is also on 
+//  Encrypts or Decrypts a single 128 bit block specified on the command line as a hex string. Key is also on
 //  command line and may be 128, 192, or 256 bits in size.
 //
 //  This is free and unencumbered software released into the public domain - November 2017 waterjuice.org
@@ -25,7 +25,7 @@
 #ifdef _MSC_VER
     #define StringCaseInsensitiveCmp    stricmp
 #else
-    #define StringCaseInsensitiveCmp    strcasecmp 
+    #define StringCaseInsensitiveCmp    strcasecmp
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@
 //  This function ignores any character that isn't a hex character.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static
-void 
+void
     ReadHexData
     (
         char const*         HexString,
@@ -116,7 +116,7 @@ int
             "   AesBlock [-D] <KeyHex> <BlockHex>\n" );
         return 1;
     }
-    
+
     for( i=1; i<(uint32_t)ArgC; i++ )
     {
         if( 0 == StringCaseInsensitiveCmp( ArgV[i], "-d" ) )
@@ -132,7 +132,7 @@ int
                 printf( "Invalid syntax\n" );
                 exit( 1 );
             }
-            
+
             ReadHexData( ArgV[i], bufferPtr, bufferSizePtr );
             paramIndex += 1;
         }

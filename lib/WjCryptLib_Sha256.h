@@ -73,3 +73,17 @@ void
         Sha256Context*      Context,        // [in out]
         SHA256_HASH*        Digest          // [out]
     );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Sha256Calculate
+//
+//  Combines Sha256Initialise, Sha256Update, and Sha256Finalise into one function. Calculates the SHA256 hash of the
+//  buffer.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Sha256Calculate
+    (
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize,     // [in]
+        SHA256_HASH*        Digest          // [in]
+    );

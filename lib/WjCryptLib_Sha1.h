@@ -79,3 +79,16 @@ void
         Sha1Context*        Context,        // [in out]
         SHA1_HASH*          Digest          // [in]
     );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Sha1Calculate
+//
+//  Combines Sha1Initialise, Sha1Update, and Sha1Finalise into one function. Calculates the SHA1 hash of the buffer.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Sha1Calculate
+    (
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize,     // [in]
+        SHA1_HASH*          Digest          // [in]
+    );

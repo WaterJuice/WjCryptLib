@@ -273,3 +273,24 @@ void
         STORE64H( Context->state[i], Digest->bytes+(8*i) );
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Sha512Calculate
+//
+//  Combines Sha512Initialise, Sha512Update, and Sha512Finalise into one function. Calculates the SHA512 hash of the
+//  buffer.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Sha512Calculate
+    (
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize,     // [in]
+        SHA512_HASH*        Digest          // [in]
+    )
+{
+    Sha512Context context;
+
+    Sha512Initialise( &context );
+    Sha512Update( &context, Buffer, BufferSize );
+    Sha512Finalise( &context, Digest );
+}

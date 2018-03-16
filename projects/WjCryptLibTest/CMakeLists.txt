@@ -8,6 +8,8 @@ add_executable( ${MODULE_NAME}
     WjCryptLibTest_Rc4.h
     WjCryptLibTest_Aes.c
     WjCryptLibTest_Aes.h
+    WjCryptLibTest_AesCbc.c
+    WjCryptLibTest_AesCbc.h
     WjCryptLibTest_AesCtr.c
     WjCryptLibTest_AesCtr.h
     WjCryptLibTest_AesOfb.c

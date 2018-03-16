@@ -313,3 +313,23 @@ void
     Digest->bytes[14] = (uint8_t)( Context->d >> 16 );
     Digest->bytes[15] = (uint8_t)( Context->d >> 24 );
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Md5Calculate
+//
+//  Combines Md5Initialise, Md5Update, and Md5Finalise into one function. Calculates the MD5 hash of the buffer.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Md5Calculate
+    (
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize,     // [in]
+        MD5_HASH*           Digest          // [in]
+    )
+{
+    Md5Context context;
+
+    Md5Initialise( &context );
+    Md5Update( &context, Buffer, BufferSize );
+    Md5Finalise( &context, Digest );
+}

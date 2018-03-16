@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "WjCryptLibTest_Aes.h"
+#include "WjCryptLibTest_AesCbc.h"
 #include "WjCryptLibTest_AesCtr.h"
 #include "WjCryptLibTest_AesOfb.h"
 #include "WjCryptLibTest_Hashes.h"
@@ -54,6 +55,10 @@ int
     success = TestAes( );
     if( !success ) { allSuccess = false; }
     printf( "Test AES     - %s\n", success?"Pass":"Fail" );
+
+    success = TestAesCbc( );
+    if( !success ) { allSuccess = false; }
+    printf( "Test AES CBC - %s\n", success?"Pass":"Fail" );
 
     success = TestAesCtr( );
     if( !success ) { allSuccess = false; }
