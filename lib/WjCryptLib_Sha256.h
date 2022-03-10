@@ -17,6 +17,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     uint64_t    length;
@@ -87,3 +91,7 @@ void
         uint32_t            BufferSize,     // [in]
         SHA256_HASH*        Digest          // [in]
     );
+
+#ifdef __cplusplus
+}
+#endif

@@ -17,6 +17,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     uint64_t    length;
@@ -73,3 +77,7 @@ void
         Sha512Context*      Context,        // [in out]
         SHA512_HASH*        Digest          // [out]
     );
+
+#ifdef __cplusplus
+}
+#endif
