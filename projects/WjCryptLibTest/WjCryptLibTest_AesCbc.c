@@ -88,7 +88,7 @@ static TestVector gTestVectors [] =
 };
 
 #define NUM_TEST_VECTORS ( sizeof(gTestVectors) / sizeof(gTestVectors[0]) )
-#define TEST_VECTOR_OUTPUT_SIZE     48
+#define TEST_VECTOR_OUTPUT_SIZE     64
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  INTERNAL FUNCTIONS
