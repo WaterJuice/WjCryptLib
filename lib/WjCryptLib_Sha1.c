@@ -48,10 +48,10 @@ typedef union
 
 // Endian neutral macro for loading 32 bit value from 4 byte array (in big endian form).
 #define LOAD32H(x, y)                           \
-     { x = ((uint32_t)((y)[0] & 255)<<24) |     \
-           ((uint32_t)((y)[1] & 255)<<16) |     \
-           ((uint32_t)((y)[2] & 255)<<8)  |     \
-           ((uint32_t)((y)[3] & 255)); }
+    do { x = ((uint32_t)((y)[0] & 255)<<24) |     \
+             ((uint32_t)((y)[1] & 255)<<16) |     \
+             ((uint32_t)((y)[2] & 255)<<8)  |     \
+             ((uint32_t)((y)[3] & 255)); } while (0)
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
@@ -65,11 +65,11 @@ typedef union
 #define blk(i) (block->l[i&15] = rol(block->l[(i+13)&15] ^ block->l[(i+8)&15] ^ block->l[(i+2)&15] ^ block->l[i&15],1))
 
 // (R0+R1), R2, R3, R4 are the different operations used in SHA1
-#define R0(v,w,x,y,z,i)  z += ((w&(x^y))^y)     + blk0(i)+ 0x5A827999 + rol(v,5); w=rol(w,30);
-#define R1(v,w,x,y,z,i)  z += ((w&(x^y))^y)     + blk(i) + 0x5A827999 + rol(v,5); w=rol(w,30);
-#define R2(v,w,x,y,z,i)  z += (w^x^y)           + blk(i) + 0x6ED9EBA1 + rol(v,5); w=rol(w,30);
-#define R3(v,w,x,y,z,i)  z += (((w|x)&y)|(w&x)) + blk(i) + 0x8F1BBCDC + rol(v,5); w=rol(w,30);
-#define R4(v,w,x,y,z,i)  z += (w^x^y)           + blk(i) + 0xCA62C1D6 + rol(v,5); w=rol(w,30);
+#define R0(v,w,x,y,z,i)  do { z += ((w&(x^y))^y)     + blk0(i)+ 0x5A827999 + rol(v,5); w=rol(w,30); } while (0)
+#define R1(v,w,x,y,z,i)  do { z += ((w&(x^y))^y)     + blk(i) + 0x5A827999 + rol(v,5); w=rol(w,30); } while (0)
+#define R2(v,w,x,y,z,i)  do { z += (w^x^y)           + blk(i) + 0x6ED9EBA1 + rol(v,5); w=rol(w,30); } while (0)
+#define R3(v,w,x,y,z,i)  do { z += (((w|x)&y)|(w&x)) + blk(i) + 0x8F1BBCDC + rol(v,5); w=rol(w,30); } while (0)
+#define R4(v,w,x,y,z,i)  do { z += (w^x^y)           + blk(i) + 0xCA62C1D6 + rol(v,5); w=rol(w,30); } while (0)
 
 // Loads the 128 bits from ByteArray into WordArray, treating ByteArray as big endian data
 #ifdef USE_LITTLE_ENDIAN_SHORTCUT
@@ -77,13 +77,13 @@ typedef union
         memcpy( WordArray, ByteArray, 64 )
 #else
     #define Load128BitsAsWords( WordArray, ByteArray )      \
-    {                                                       \
+    do {                                                    \
         uint32_t i;                                         \
         for( i=0; i<16; i++ )                               \
         {                                                   \
             LOAD32H( (WordArray)[i], (ByteArray)+(i*4) );   \
         }                                                   \
-    }
+    } while (0)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
