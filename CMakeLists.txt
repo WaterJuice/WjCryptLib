@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.6.0)
 
 project( WjCryptLib )
 
+enable_testing()
+
 # WjCryptLib Static Library
 add_library( WjCryptLib STATIC
     lib/WjCryptLib_Aes.h

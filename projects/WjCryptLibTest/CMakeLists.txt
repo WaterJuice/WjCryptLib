@@ -17,4 +17,6 @@ add_executable( ${MODULE_NAME}
 target_link_libraries( ${MODULE_NAME}
     WjCryptLib )
 
+add_test( NAME ${MODULE_NAME} COMMAND ${MODULE_NAME} )
+
 install(TARGETS ${MODULE_NAME} DESTINATION .)
