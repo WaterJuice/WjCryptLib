@@ -95,36 +95,44 @@ static TestVector gTestVectors [] =
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  HexToBytes
 //
-//  Reads a string as hex and places it in Data. This function will output as many bytes as represented in the input
-//  string, it will not check the output buffer length. On return *pDataSize will be number of bytes read.
+//  Reads a string as hex and places it in Data. The number of bytes represented in the input string must not exceed
+//  MaxDataSize, otherwise the function returns false without writing anything. On success *pDataSize is set to the
+//  number of bytes written.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static
-void
+bool
     HexToBytes
     (
         char const*         HexString,              // [in]
         uint8_t*            Data,                   // [out]
+        uint32_t            MaxDataSize,            // [in]
         uint32_t*           pDataSize               // [out optional]
     )
 {
     uint32_t        i;
     char            holdingBuffer [3] = {0};
     unsigned        hexToNumber;
-    uint32_t        outputIndex = 0;
+    uint32_t        numBytes = (uint32_t)( strlen(HexString) / 2 );
 
-    for( i=0; i<strlen(HexString)/2; i++ )
+    if( numBytes > MaxDataSize )
+    {
+        return false;
+    }
+
+    for( i=0; i<numBytes; i++ )
     {
         holdingBuffer[0] = HexString[i*2 + 0];
         holdingBuffer[1] = HexString[i*2 + 1];
         sscanf( holdingBuffer, "%x", &hexToNumber );
         Data[i] = (uint8_t) hexToNumber;
-        outputIndex += 1;
     }
 
     if( NULL != pDataSize )
     {
-        *pDataSize = outputIndex;
+        *pDataSize = numBytes;
     }
+
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,9 +157,13 @@ bool
 
     for( vectorIndex=0; vectorIndex<NUM_TEST_VECTORS; vectorIndex++ )
     {
-        HexToBytes( gTestVectors[vectorIndex].KeyHex,        key, &keySize );
-        HexToBytes( gTestVectors[vectorIndex].IvHex,         iv, NULL );
-        HexToBytes( gTestVectors[vectorIndex].CipherTextHex, vector, NULL );
+        if( !HexToBytes( gTestVectors[vectorIndex].KeyHex,        key,    sizeof(key),    &keySize )
+         || !HexToBytes( gTestVectors[vectorIndex].IvHex,         iv,     sizeof(iv),     NULL )
+         || !HexToBytes( gTestVectors[vectorIndex].CipherTextHex, vector, sizeof(vector), NULL ) )
+        {
+            printf( "Test vector (index:%u) has a hex string too large for its buffer\n", vectorIndex );
+            return false;
+        }
 
         AesCtrXorWithKey( key, keySize, iv, zeroBuffer, aesCtrOutput, TEST_VECTOR_OUTPUT_SIZE );
         if( 0 != memcmp( aesCtrOutput, vector, TEST_VECTOR_OUTPUT_SIZE ) )
@@ -308,6 +320,64 @@ bool
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TestSubBlockChunking
+//
+//  Tests that AES CTR produces a consistent keystream regardless of how the requests are chunked, including chunk
+//  sizes that do not align with the 16-byte block boundary. Unlike TestStreamConsistency this test never calls
+//  AesCtrSetStreamIndex between chunks. AesCtrSetStreamIndex forces a regeneration of the current cipher block, which
+//  hides any state inconsistency that AesCtrXor leaves in the context across calls.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static
+bool
+    TestSubBlockChunking
+    (
+        void
+    )
+{
+    bool                  success = true;
+    uint8_t const         key [AES_KEY_SIZE_128] = {0};
+    uint8_t const         iv [AES_CTR_IV_SIZE] = {0};
+    uint32_t const        totalSize = 64;
+    uint8_t               reference [64];
+    uint8_t               chunked [64];
+    AesCtrContext         context;
+    uint32_t              sizeIndex;
+    uint32_t              offset;
+    static uint32_t const chunkSizes [] = { 1, 2, 4, 7, 8, 15 };
+
+    // Generate the reference keystream in a single call. This matches the published test vector at index 0 in
+    // gTestVectors and is known to be correct.
+    memset( reference, 0, totalSize );
+    AesCtrXorWithKey( key, sizeof(key), iv, reference, reference, totalSize );
+
+    // For each sub-block chunk size, regenerate the same keystream by feeding the requests in chunks of that size
+    // and verify the result is identical to the reference.
+    for( sizeIndex=0; sizeIndex<sizeof(chunkSizes)/sizeof(chunkSizes[0]); sizeIndex++ )
+    {
+        uint32_t chunkSize = chunkSizes[sizeIndex];
+
+        memset( chunked, 0, totalSize );
+        AesCtrInitialiseWithKey( &context, key, sizeof(key), iv );
+
+        offset = 0;
+        while( offset < totalSize )
+        {
+            uint32_t thisChunkSize = MIN( chunkSize, totalSize - offset );
+            AesCtrXor( &context, chunked + offset, chunked + offset, thisChunkSize );
+            offset += thisChunkSize;
+        }
+
+        if( 0 != memcmp( reference, chunked, totalSize ) )
+        {
+            printf( "Sub-block chunking failed for chunkSize=%u\n", chunkSize );
+            success = false;
+        }
+    }
+
+    return success;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TestEndianCorrectness
 //
 //  Verifies that endianess is handled correctly. This will force the internal block counter to be a large number
@@ -370,6 +440,9 @@ bool
     if( !success ) { totalSuccess = false; }
 
     success = TestStreamConsistency( );
+    if( !success ) { totalSuccess = false; }
+
+    success = TestSubBlockChunking( );
     if( !success ) { totalSuccess = false; }
 
     success = TestEndianCorrectness( );

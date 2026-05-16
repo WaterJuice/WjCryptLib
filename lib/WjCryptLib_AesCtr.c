@@ -189,8 +189,8 @@ void
     int             i;
     uint64_t        loopStartingCipherBlockIndex;
     uint32_t        loopStartingOutputOffset;
-    uint8_t         preCipherBlock [AES_KEY_SIZE_128];
-    uint8_t         encCipherBlock [AES_KEY_SIZE_128];
+    uint8_t         preCipherBlock [AES_BLOCK_SIZE];
+    uint8_t         encCipherBlock [AES_BLOCK_SIZE];
     uint64_t        cipherBlockIndex = 0;
 
     // First determine how much is available in the current block.
@@ -203,12 +203,14 @@ void
     // XOR the bytes from the cipher block
     XorBuffers( InBuffer, Context->CurrentCipherBlock + (AES_BLOCK_SIZE - amountAvailableInBlock), OutBuffer, firstChunkSize );
 
-    // Determine how many iterations will be needed for generating cipher blocks.
-    // We always have to finish with a non-depleted cipher block.
-    // Also calculate the cipher block index and the output offset for when we start the loop.
+    // Determine how many additional cipher blocks need to be generated to bring the context up to the block that
+    // contains the new stream position. If the operation does not cross a block boundary this is zero and the loop
+    // below is skipped, leaving CurrentCipherBlock and CurrentCipherBlockIndex unchanged. When the operation does
+    // cross a block boundary the loop will generate every intermediate block and the final one, so the context
+    // ends with the block containing the new stream position materialised.
     // This function may be built with OpenMP and the loop will run in parallel. So we set-up variables that will
     // be common at the start of the loop.
-    numIterations = ( (Size - firstChunkSize) + AES_BLOCK_SIZE ) / AES_BLOCK_SIZE;
+    numIterations = (int)( ( (Context->StreamIndex + Size) / AES_BLOCK_SIZE ) - Context->CurrentCipherBlockIndex );
     loopStartingCipherBlockIndex = Context->CurrentCipherBlockIndex + 1;
     loopStartingOutputOffset = firstChunkSize;
 
