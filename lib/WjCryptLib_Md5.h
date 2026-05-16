@@ -79,7 +79,7 @@ void
     Md5Finalise
     (
         Md5Context*         Context,        // [in out]
-        MD5_HASH*           Digest          // [in]
+        MD5_HASH*           Digest          // [out]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,5 +92,5 @@ void
     (
         void  const*        Buffer,         // [in]
         uint32_t            BufferSize,     // [in]
-        MD5_HASH*           Digest          // [in]
+        MD5_HASH*           Digest          // [out]
     );

@@ -31,9 +31,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Rc4Initialise
 //
-//  Initialises an RC4 cipher and discards the specified number of first bytes.
+//  Initialises an RC4 cipher and discards the specified number of first bytes. KeySize must be in the range 1 to 256
+//  inclusive.
+//  Returns 0 if successful, or -1 if KeySize is 0.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
+int
     Rc4Initialise
     (
         Rc4Context*     Context,        // [out]
@@ -45,6 +47,12 @@ void
     uint32_t        i;
     uint32_t        j;
     uint32_t        n;
+
+    if( 0 == KeySize )
+    {
+        // RC4 is undefined for a zero length key. Refuse to initialise.
+        return -1;
+    }
 
     // Setup key schedule
     for( i=0; i<256; i++ )
@@ -72,6 +80,8 @@ void
 
     Context->i = i;
     Context->j = j;
+
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,9 +142,10 @@ void
 //
 //  This function combines Rc4Initialise and Rc4Xor. This is suitable when encrypting/decrypting data in one go with a
 //  key that is not going to be reused.
-//  InBuffer and OutBuffer can point to the same location for inplace encrypting/decrypting
+//  InBuffer and OutBuffer can point to the same location for inplace encrypting/decrypting.
+//  Returns 0 if successful, or -1 if KeySize is 0.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
+int
     Rc4XorWithKey
     (
         uint8_t const*      Key,                    // [in]
@@ -147,6 +158,10 @@ void
 {
     Rc4Context      context;
 
-    Rc4Initialise( &context, Key, KeySize, DropN );
+    if( 0 != Rc4Initialise( &context, Key, KeySize, DropN ) )
+    {
+        return -1;
+    }
     Rc4Xor( &context, InBuffer, OutBuffer, BufferSize );
+    return 0;
 }

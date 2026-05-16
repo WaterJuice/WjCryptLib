@@ -104,8 +104,8 @@ void
     uint32_t            c;
     uint32_t            d;
     uint32_t            e;
-    uint8_t             workspace[64];
-    CHAR64LONG16*       block = (CHAR64LONG16*) workspace;
+    CHAR64LONG16        workspace;
+    CHAR64LONG16*       block = &workspace;
 
     Load128BitsAsWords( block->l, buffer );
 
@@ -224,7 +224,7 @@ void
     Sha1Finalise
     (
         Sha1Context*        Context,        // [in out]
-        SHA1_HASH*          Digest          // [in]
+        SHA1_HASH*          Digest          // [out]
     )
 {
     uint32_t    i;
@@ -258,7 +258,7 @@ void
     (
         void  const*        Buffer,         // [in]
         uint32_t            BufferSize,     // [in]
-        SHA1_HASH*          Digest          // [in]
+        SHA1_HASH*          Digest          // [out]
     )
 {
     Sha1Context context;

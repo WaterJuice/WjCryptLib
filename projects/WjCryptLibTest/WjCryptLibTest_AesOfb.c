@@ -94,36 +94,44 @@ static TestVector gTestVectors [] =
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  HexToBytes
 //
-//  Reads a string as hex and places it in Data. This function will output as many bytes as represented in the input
-//  string, it will not check the output buffer length. On return *pDataSize will be number of bytes read.
+//  Reads a string as hex and places it in Data. The number of bytes represented in the input string must not exceed
+//  MaxDataSize, otherwise the function returns false without writing anything. On success *pDataSize is set to the
+//  number of bytes written.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static
-void
+bool
     HexToBytes
     (
         char const*         HexString,              // [in]
         uint8_t*            Data,                   // [out]
+        uint32_t            MaxDataSize,            // [in]
         uint32_t*           pDataSize               // [out optional]
     )
 {
     uint32_t        i;
     char            holdingBuffer [3] = {0};
     unsigned        hexToNumber;
-    uint32_t        outputIndex = 0;
+    uint32_t        numBytes = (uint32_t)( strlen(HexString) / 2 );
 
-    for( i=0; i<strlen(HexString)/2; i++ )
+    if( numBytes > MaxDataSize )
+    {
+        return false;
+    }
+
+    for( i=0; i<numBytes; i++ )
     {
         holdingBuffer[0] = HexString[i*2 + 0];
         holdingBuffer[1] = HexString[i*2 + 1];
         sscanf( holdingBuffer, "%x", &hexToNumber );
         Data[i] = (uint8_t) hexToNumber;
-        outputIndex += 1;
     }
 
     if( NULL != pDataSize )
     {
-        *pDataSize = outputIndex;
+        *pDataSize = numBytes;
     }
+
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,9 +156,13 @@ bool
 
     for( vectorIndex=0; vectorIndex<NUM_TEST_VECTORS; vectorIndex++ )
     {
-        HexToBytes( gTestVectors[vectorIndex].KeyHex,        key, &keySize );
-        HexToBytes( gTestVectors[vectorIndex].IvHex,         iv, NULL );
-        HexToBytes( gTestVectors[vectorIndex].CipherTextHex, vector, NULL );
+        if( !HexToBytes( gTestVectors[vectorIndex].KeyHex,        key,    sizeof(key),    &keySize )
+         || !HexToBytes( gTestVectors[vectorIndex].IvHex,         iv,     sizeof(iv),     NULL )
+         || !HexToBytes( gTestVectors[vectorIndex].CipherTextHex, vector, sizeof(vector), NULL ) )
+        {
+            printf( "Test vector (index:%u) has a hex string too large for its buffer\n", vectorIndex );
+            return false;
+        }
 
         AesOfbXorWithKey( key, keySize, iv, zeroBuffer, aesOfbOutput, TEST_VECTOR_OUTPUT_SIZE );
         if( 0 != memcmp( aesOfbOutput, vector, TEST_VECTOR_OUTPUT_SIZE ) )

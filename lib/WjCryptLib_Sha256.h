@@ -85,5 +85,5 @@ void
     (
         void  const*        Buffer,         // [in]
         uint32_t            BufferSize,     // [in]
-        SHA256_HASH*        Digest          // [in]
+        SHA256_HASH*        Digest          // [out]
     );

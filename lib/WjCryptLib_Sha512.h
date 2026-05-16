@@ -73,3 +73,17 @@ void
         Sha512Context*      Context,        // [in out]
         SHA512_HASH*        Digest          // [out]
     );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Sha512Calculate
+//
+//  Combines Sha512Initialise, Sha512Update, and Sha512Finalise into one function. Calculates the SHA512 hash of the
+//  buffer.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+    Sha512Calculate
+    (
+        void  const*        Buffer,         // [in]
+        uint32_t            BufferSize,     // [in]
+        SHA512_HASH*        Digest          // [out]
+    );

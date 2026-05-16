@@ -77,7 +77,7 @@ void
     Sha1Finalise
     (
         Sha1Context*        Context,        // [in out]
-        SHA1_HASH*          Digest          // [in]
+        SHA1_HASH*          Digest          // [out]
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,5 +90,5 @@ void
     (
         void  const*        Buffer,         // [in]
         uint32_t            BufferSize,     // [in]
-        SHA1_HASH*          Digest          // [in]
+        SHA1_HASH*          Digest          // [out]
     );

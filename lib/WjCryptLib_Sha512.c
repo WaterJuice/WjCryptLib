@@ -185,7 +185,7 @@ void
 {
     uint32_t    n;
 
-    if( Context->curlen > sizeof(Context->buf) )
+    if( Context->curlen >= sizeof(Context->buf) )
     {
        return;
     }
@@ -285,7 +285,7 @@ void
     (
         void  const*        Buffer,         // [in]
         uint32_t            BufferSize,     // [in]
-        SHA512_HASH*        Digest          // [in]
+        SHA512_HASH*        Digest          // [out]
     )
 {
     Sha512Context context;

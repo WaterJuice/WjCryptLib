@@ -80,5 +80,29 @@ bool
         }
     }
 
+    // Verify that a zero length key is rejected rather than triggering undefined behaviour from a modulo-by-zero
+    // inside the key schedule loop.
+    {
+        uint8_t const   keyByte = 0;
+        uint8_t         buffer = 0;
+
+        if( -1 != Rc4Initialise( &context, &keyByte, 0, 0 ) )
+        {
+            printf( "TestRc4 - Rc4Initialise did not reject KeySize=0\n" );
+            success = false;
+        }
+        if( -1 != Rc4XorWithKey( &keyByte, 0, 0, &buffer, &buffer, sizeof(buffer) ) )
+        {
+            printf( "TestRc4 - Rc4XorWithKey did not reject KeySize=0\n" );
+            success = false;
+        }
+        // A non-zero key size of 1 should still succeed.
+        if( 0 != Rc4Initialise( &context, &keyByte, 1, 0 ) )
+        {
+            printf( "TestRc4 - Rc4Initialise rejected a valid KeySize=1\n" );
+            success = false;
+        }
+    }
+
     return success;
 }

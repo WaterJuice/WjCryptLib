@@ -235,6 +235,19 @@ bool
         }
     }
 
+    // Check the vectors using the Md5Calculate one-call convenience function.
+    for( i=0; i<NUM_TEST_VECTORS; i++ )
+    {
+        len = (uint32_t) gTestVectors[i].PlainTextSize ? gTestVectors[i].PlainTextSize : (uint32_t)strlen( gTestVectors[i].PlainText );
+        Md5Calculate( gTestVectors[i].PlainText, len, &hash );
+
+        if( 0 != memcmp( &hash, &gTestVectors[i].Md5Hash, sizeof(hash) ) )
+        {
+            printf( "TestMd5 - Test vector %u failed [Calculate]\n", i );
+            success = false;
+        }
+    }
+
     return success;
 }
 
@@ -293,6 +306,19 @@ bool
         else
         {
             printf( "TestSha1 - Test vector %u failed [byte by byte]\n", i );
+            success = false;
+        }
+    }
+
+    // Check the vectors using the Sha1Calculate one-call convenience function.
+    for( i=0; i<NUM_TEST_VECTORS; i++ )
+    {
+        len = (uint32_t) gTestVectors[i].PlainTextSize ? gTestVectors[i].PlainTextSize : (uint32_t)strlen( gTestVectors[i].PlainText );
+        Sha1Calculate( gTestVectors[i].PlainText, len, &hash );
+
+        if( 0 != memcmp( &hash, &gTestVectors[i].Sha1Hash, sizeof(hash) ) )
+        {
+            printf( "TestSha1 - Test vector %u failed [Calculate]\n", i );
             success = false;
         }
     }
@@ -359,6 +385,19 @@ bool
         }
     }
 
+    // Check the vectors using the Sha256Calculate one-call convenience function.
+    for( i=0; i<NUM_TEST_VECTORS; i++ )
+    {
+        len = (uint32_t) gTestVectors[i].PlainTextSize ? gTestVectors[i].PlainTextSize : (uint32_t)strlen( gTestVectors[i].PlainText );
+        Sha256Calculate( gTestVectors[i].PlainText, len, &hash );
+
+        if( 0 != memcmp( &hash, &gTestVectors[i].Sha256Hash, sizeof(hash) ) )
+        {
+            printf( "TestSha256 - Test vector %u failed [Calculate]\n", i );
+            success = false;
+        }
+    }
+
     return success;
 }
 
@@ -417,6 +456,19 @@ bool
         else
         {
             printf( "TestSha512 - Test vector %u failed [byte by byte]\n", i );
+            success = false;
+        }
+    }
+
+    // Check the vectors using the Sha512Calculate one-call convenience function.
+    for( i=0; i<NUM_TEST_VECTORS; i++ )
+    {
+        len = (uint32_t) gTestVectors[i].PlainTextSize ? gTestVectors[i].PlainTextSize : (uint32_t)strlen( gTestVectors[i].PlainText );
+        Sha512Calculate( gTestVectors[i].PlainText, len, &hash );
+
+        if( 0 != memcmp( &hash, &gTestVectors[i].Sha512Hash, sizeof(hash) ) )
+        {
+            printf( "TestSha512 - Test vector %u failed [Calculate]\n", i );
             success = false;
         }
     }

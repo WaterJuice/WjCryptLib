@@ -88,7 +88,7 @@ static TestVector gTestVectors [] =
 };
 
 #define NUM_TEST_VECTORS ( sizeof(gTestVectors) / sizeof(gTestVectors[0]) )
-#define TEST_VECTOR_OUTPUT_SIZE     48
+#define TEST_VECTOR_OUTPUT_SIZE     64
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  INTERNAL FUNCTIONS
@@ -97,36 +97,44 @@ static TestVector gTestVectors [] =
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  HexToBytes
 //
-//  Reads a string as hex and places it in Data. This function will output as many bytes as represented in the input
-//  string, it will not check the output buffer length. On return *pDataSize will be number of bytes read.
+//  Reads a string as hex and places it in Data. The number of bytes represented in the input string must not exceed
+//  MaxDataSize, otherwise the function returns false without writing anything. On success *pDataSize is set to the
+//  number of bytes written.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static
-void
+bool
     HexToBytes
     (
         char const*         HexString,              // [in]
         uint8_t*            Data,                   // [out]
+        uint32_t            MaxDataSize,            // [in]
         uint32_t*           pDataSize               // [out optional]
     )
 {
     uint32_t        i;
     char            holdingBuffer [3] = {0};
     unsigned        hexToNumber;
-    uint32_t        outputIndex = 0;
+    uint32_t        numBytes = (uint32_t)( strlen(HexString) / 2 );
 
-    for( i=0; i<strlen(HexString)/2; i++ )
+    if( numBytes > MaxDataSize )
+    {
+        return false;
+    }
+
+    for( i=0; i<numBytes; i++ )
     {
         holdingBuffer[0] = HexString[i*2 + 0];
         holdingBuffer[1] = HexString[i*2 + 1];
         sscanf( holdingBuffer, "%x", &hexToNumber );
         Data[i] = (uint8_t) hexToNumber;
-        outputIndex += 1;
     }
 
     if( NULL != pDataSize )
     {
-        *pDataSize = outputIndex;
+        *pDataSize = numBytes;
     }
+
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,9 +166,13 @@ bool
 
     for( vectorIndex=0; vectorIndex<NUM_TEST_VECTORS; vectorIndex++ )
     {
-        HexToBytes( gTestVectors[vectorIndex].KeyHex,        key, &keySize );
-        HexToBytes( gTestVectors[vectorIndex].IvHex,         iv, NULL );
-        HexToBytes( gTestVectors[vectorIndex].CipherTextHex, vector, NULL );
+        if( !HexToBytes( gTestVectors[vectorIndex].KeyHex,        key,    sizeof(key),    &keySize )
+         || !HexToBytes( gTestVectors[vectorIndex].IvHex,         iv,     sizeof(iv),     NULL )
+         || !HexToBytes( gTestVectors[vectorIndex].CipherTextHex, vector, sizeof(vector), NULL ) )
+        {
+            printf( "Test vector (index:%u) has a hex string too large for its buffer\n", vectorIndex );
+            return false;
+        }
 
         AesCbcEncryptWithKey( key, keySize, iv, inputBuffer, aesCbcOutput, TEST_VECTOR_OUTPUT_SIZE );
         if( 0 != memcmp( aesCbcOutput, vector, TEST_VECTOR_OUTPUT_SIZE ) )
@@ -272,6 +284,77 @@ bool
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TestHexToBytesBoundsCheck
+//
+//  Verifies that HexToBytes refuses to write past the end of the output buffer. The previous version of HexToBytes
+//  had no bounds check, which caused the AES-CBC test buffer overflow in earlier releases.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static
+bool
+    TestHexToBytesBoundsCheck
+    (
+        void
+    )
+{
+    bool        success = true;
+    uint8_t     guarded [8];
+    uint8_t     sentinel = 0xAA;
+    uint32_t    written = 0xFFFFFFFF;
+
+    // Input encodes 16 bytes but output buffer is only 8 bytes. HexToBytes must return false and must not write to
+    // the output buffer.
+    memset( guarded, sentinel, sizeof(guarded) );
+    if( HexToBytes( "0102030405060708090a0b0c0d0e0f10", guarded, sizeof(guarded), &written ) )
+    {
+        printf( "HexToBytes accepted oversized input\n" );
+        success = false;
+    }
+    for( uint32_t i=0; i<sizeof(guarded); i++ )
+    {
+        if( guarded[i] != sentinel )
+        {
+            printf( "HexToBytes wrote to output buffer despite reporting failure (byte %u)\n", i );
+            success = false;
+            break;
+        }
+    }
+
+    // Input exactly fills the buffer. HexToBytes must succeed.
+    written = 0;
+    if( !HexToBytes( "0102030405060708", guarded, sizeof(guarded), &written ) )
+    {
+        printf( "HexToBytes rejected an exactly-fitting input\n" );
+        success = false;
+    }
+    if( 8 != written )
+    {
+        printf( "HexToBytes reported wrong byte count for exactly-fitting input: %u\n", written );
+        success = false;
+    }
+
+    // Input smaller than buffer. HexToBytes must succeed and report the smaller count.
+    memset( guarded, sentinel, sizeof(guarded) );
+    written = 0;
+    if( !HexToBytes( "11223344", guarded, sizeof(guarded), &written ) )
+    {
+        printf( "HexToBytes rejected an undersized input\n" );
+        success = false;
+    }
+    if( 4 != written )
+    {
+        printf( "HexToBytes reported wrong byte count for undersized input: %u\n", written );
+        success = false;
+    }
+    if( sentinel != guarded[4] )
+    {
+        printf( "HexToBytes wrote past the bytes it claimed to write\n" );
+        success = false;
+    }
+
+    return success;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  PUBLIC FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -288,6 +371,9 @@ bool
 {
     bool        totalSuccess = true;
     bool        success;
+
+    success = TestHexToBytesBoundsCheck( );
+    if( !success ) { totalSuccess = false; }
 
     success = TestVectors( );
     if( !success ) { totalSuccess = false; }
