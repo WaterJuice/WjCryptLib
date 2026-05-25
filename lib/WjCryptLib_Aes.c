@@ -667,20 +667,20 @@ static const uint32_t rcon[] =
 #define BYTE(x, n) (((x) >> (8 * (n))) & 255)
 
 #define STORE32H(x, y)                           \
-{                                                \
+do {                                             \
     (y)[0] = (unsigned char)(((x)>>24)&255);     \
     (y)[1] = (unsigned char)(((x)>>16)&255);     \
     (y)[2] = (unsigned char)(((x)>>8)&255);      \
     (y)[3] = (unsigned char)((x)&255);           \
-}
+} while (0)
 
 #define LOAD32H(x, y)                            \
-{                                                \
+do {                                             \
     x = ((uint32_t)((y)[0] & 255)<<24)           \
       | ((uint32_t)((y)[1] & 255)<<16)           \
       | ((uint32_t)((y)[2] & 255)<<8)            \
       | ((uint32_t)((y)[3] & 255));              \
-}
+} while (0)
 
 #define ROL(x, y)  ( (((uint32_t)(x)<<(uint32_t)((y)&31)) | (((uint32_t)(x)&0xFFFFFFFFUL)>>(uint32_t)((32-((y)&31))&31))) & 0xFFFFFFFFUL)
 #define ROR(x, y)  ( ((((uint32_t)(x)&0xFFFFFFFFUL)>>(uint32_t)((y)&31)) | ((uint32_t)(x)<<(uint32_t)((32-((y)&31))&31))) & 0xFFFFFFFFUL)
